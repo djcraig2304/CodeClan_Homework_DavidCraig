@@ -1,0 +1,137 @@
+---
+title: "Dplyr_Homework"
+output: html_notebook
+---
+
+```{r}
+
+drinks_content
+
+```
+
+## Question 1
+
+```{r}
+dim(drinks_content)
+#dimensions
+```
+```{r}
+nrow(drinks_content)
+#row number
+
+```
+```{r}
+ncol(drinks_content)
+#column number
+```
+```{r}
+summary(drinks_content)
+#variable types and variable names
+```
+
+```{r}
+names(drinks_content)
+#variable names
+```
+
+```{r}
+head(drinks_content)
+#top 6 rows
+
+```
+
+
+```{r}
+tail(drinks_content)
+#bottom 6 rows
+```
+```{r}
+glimpse(drinks_content)
+#data snapshot
+
+```
+```{r}
+skim(drinks_content)
+#skimr view of dataset
+```
+
+
+## Question 2:
+
+```{r}
+(drinks_content, Beverage_category:Calories) 
+#selected columns, No NA values were detected in Calories column
+
+```
+
+```{r}
+drink_calories <- select(drinks_content, Beverage_category:Calories)
+filter(drink_calories, Calories == NA)
+# No NA values were detected in Calories column
+
+```
+
+
+## Question 3
+
+```{r}
+drink_calories %>% 
+  mutate(calorie_diff = Calories - 135)
+#added new column with calorie differences
+```
+
+
+## Question 4
+```{r}
+drink_calories %>% 
+  group_by(Beverage_category) %>% 
+  summarise(mean(Calories), median(Calories))
+# The 3 highest calorie drinks in descending order are Smoothies, Frappuccino® Blended Coffee and Signature Espresso Drinks.
+# The 3 lowest calorie drinks in ascending order are Coffee, Shaken Iced Beverages and Classic Espresso Drinks.
+```
+
+## Question 5
+
+```{r}
+drink_calories %>% 
+  group_by(Beverage_prep) %>% 
+  summarise(mean(Calories))
+#The average number of calories by beverage prep type.
+```
+
+## Question 6
+
+```{r}
+drink_calories %>% 
+  summarise(mean(Calories)) %>% 
+  pull()
+## extracted the average value for all drinks from the data 
+
+```
+```{r}
+all_drinks_av <- drink_calories %>% 
+  summarise(mean(Calories)) %>% 
+  pull()
+
+all_drinks_av
+```
+```{r}
+drink_calories %>% 
+  group_by(Beverage_prep) %>% 
+  summarise(mean(Calories) - all_drinks_av)
+# 2% Milk, Grande Nonfat Milk, Soymilk contain more than the average calories of all drinks.
+```
+
+##Question 7
+
+```{r}
+drink_calories %>% 
+  arrange(desc(Calories)) %>% 
+  tail(15)
+# The best low calorie coffee drink is a short brewed coffee. Below is a table of the 15 lowest calorie drinks. 
+```
+
+
+
+
+
