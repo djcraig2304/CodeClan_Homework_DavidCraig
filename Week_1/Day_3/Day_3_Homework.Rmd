@@ -1,0 +1,168 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+
+(movies <- read.csv("movies.csv"))
+
+library(janitor)
+
+```
+```{r}
+glimpse(movies)
+
+view(movies)
+
+dim(movies)
+
+names(movies)
+
+
+
+```
+
+## Question 1:
+Large file with 13 columns ("original_title"    "title"             "homepage"          "budget"            "original_language" "overview"          "popularity"       
+ [8] "release_date"      "revenue"           "runtime"           "tagline"           "vote_average"      "vote_count") 
+ 
+ and 4803 rows
+ 
+ 
+ ## Question 2
+
+```{r}
+movies %>% 
+  mutate(original_is_title = title == original_title, .after = title) %>% 
+  arrange(original_is_title, TRUE) %>% 
+  count(original_is_title)
+#most titles match the original title so I chose the title column to take forward to the next step.
+  
+```
+
+```{r}
+(movies_selected <- movies %>% 
+  select(title, runtime, budget))
+```
+ 
+ 
+ ## Question 3:
+ 
+```{r}
+movies_selected %>% 
+  filter(is.na(budget))
+
+movies_selected %>% 
+  filter(is.na(runtime))
+
+movies_selected %>% 
+  filter(is.na(title))
+  
+  # NAs only found in the runtime column for 2 movies
+```
+ 
+```{r}
+movies_selected %>% 
+  summarise(count = sum(is.na(budget)))
+
+movies_selected %>% 
+  summarise(count = sum(is.na(runtime)))
+
+movies_selected %>% 
+  summarise(count = sum(is.na(title)))
+#confirmed that only two NAs exist in the runtime column
+```
+ ##Question 4
+ 
+ 
+```{r}
+(movies_selected_new <- movies_selected %>%
+  mutate(runtime = na_if(runtime, 0))) 
+  
+ 
+```
+ 
+```{r}
+movies_selected_new %>% 
+  filter(is.na(runtime)) %>% 
+  count(runtime = NA)
+```
+ 
+ 
+ ## Question 5
+ 
+
+```{r}
+(movies_imputed <- movies_selected_new %>% 
+  mutate(runtime = coalesce(runtime, median(runtime, na.rm = TRUE))))
+
+
+```
+
+ 
+ 
+ ##Question 6
+ 
+```{r}
+movies_imputed %>% 
+slice_min(runtime, n = 10)
+```
+```{r}
+movies_imputed %>% 
+slice_max(runtime, n = 10)
+```
+ 
+ ## Question 7
+ 
+```{r}
+new_movies_imputed <- movies_imputed %>% 
+  mutate(budget = if_else(budget < 100 | 0, median(budget), budget))
+
+new_movies_imputed %>% 
+  filter(budget == 0)
+
+new_movies_imputed
+```
+ 
+ ## Extension
+ 
+ ## Question 1
+ 
+```{r}
+(movies_budgets <- new_movies_imputed %>% 
+  mutate(budget_type = case_when(
+    budget < 12 * 1e6 ~ "Small budget",
+    budget > 12 * 1e6 & budget < 40 * 1e6 ~ "Medium budget",
+    budget > 40 * 1e6 ~ "Big budget",
+      )))
+```
+ 
+ ## Question 2
+ 
+ Struggled with final question
+ 
+```{r}
+glimpse(movies)
+```
+ 
+ 
+```{r}
+movies %>% 
+  summarise(across(where(
+    "original_title" "title" "homepage" "original_language" "overview" "release_date" "tagline" == NA))
+```
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
