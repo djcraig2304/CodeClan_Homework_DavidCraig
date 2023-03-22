@@ -2,6 +2,10 @@
 title: "Dplyr_Homework"
 output: html_notebook
 ---
+```{r}
+library(tidyverse)
+library(CodeClanData)
+```
 
 ```{r}
 
@@ -59,18 +63,31 @@ skim(drinks_content)
 ## Question 2:
 
 ```{r}
-(drinks_content, Beverage_category:Calories) 
+select(drinks_content, Beverage_category:Calories) 
 #selected columns, No NA values were detected in Calories column
 
 ```
 
 ```{r}
 drink_calories <- select(drinks_content, Beverage_category:Calories)
-filter(drink_calories, Calories == NA)
+filter(drink_calories, is.na(Calories))
 # No NA values were detected in Calories column
 
 ```
 
+Answers:
+
+```{r}
+drinks_content %>%
+  select(Beverage_category, Beverage, Beverage_prep, Calories) %>%
+  filter(is.na(Calories)) %>%
+  summarise(count_of_missing_calories = n())
+```
+
+```{r}
+drink_calories <- select(drinks_content, Beverage_category:Calories)
+filter(drink_calories, !is.na(Calories))
+```
 
 ## Question 3
 
@@ -90,6 +107,28 @@ drink_calories %>%
 # The 3 lowest calorie drinks in ascending order are Coffee, Shaken Iced Beverages and Classic Espresso Drinks.
 ```
 
+## Answer:
+
+```{r}
+most_calories <- drink_calories %>%
+  group_by(Beverage_category) %>%
+  summarise(mean_calories = mean(Calories)) %>%
+  arrange(desc(mean_calories)) %>%
+  head(3)
+
+most_calories
+```
+
+```{r}
+least_calories <- drink_calories %>%
+  group_by(Beverage_category) %>%
+  summarise(mean_calories = mean(Calories)) %>%
+  arrange(mean_calories)%>%
+  head(3)
+
+least_calories
+```
+
 ## Question 5
 
 ```{r}
@@ -97,6 +136,16 @@ drink_calories %>%
   group_by(Beverage_prep) %>% 
   summarise(mean(Calories))
 #The average number of calories by beverage prep type.
+```
+Answer:
+
+```{r}
+average_bev_prep <- drink_calories %>%
+  group_by(Beverage_prep) %>%
+  summarise(mean_cals = mean(Calories)) %>%
+  arrange(desc(mean_cals))
+
+average_bev_prep
 ```
 
 ## Question 6
@@ -118,19 +167,56 @@ all_drinks_av
 ```{r}
 drink_calories %>% 
   group_by(Beverage_prep) %>% 
-  summarise(mean(Calories) - all_drinks_av)
-# 2% Milk, Grande Nonfat Milk, Soymilk contain more than the average calories of all drinks.
+  summarise(positive_calories = mean(Calories) - all_drinks_av) %>% 
+  filter(positive_calories > 0)
+# 2% Milk, Grande Nonfat Milk, Soymilk, Venti Nonfat Milk and Whole Milk contain more than the average calories of all drinks.
+```
+
+Answer:
+
+```{r}
+
+# find the average calories - and we need to use pull() to be able to use the number in calculations
+avg_calories <- drink_calories %>%
+                  summarise(mean_calories = mean(Calories)) %>%
+                  pull()
+
+avg_calories 
+# find which prep types have above average calories
+above_avg_calories <- average_bev_prep %>%
+  filter(mean_cals >= avg_calories)
+
+above_avg_calories
 ```
 
 ##Question 7
 
 ```{r}
 drink_calories %>% 
-  arrange(desc(Calories)) %>% 
-  tail(15)
-# The best low calorie coffee drink is a short brewed coffee. Below is a table of the 15 lowest calorie drinks. 
+  arrange(Calories) %>% 
+  filter(Beverage_category != "Tazo® Tea Drinks") %>% 
+  head(10)
+# The best low calorie coffee drink is a short brewed coffee. Below is a table of the 10 lowest calorie drinks. 
 ```
+ # Answer
+ 
+```{r}
+head(drink_calories)
 
+drink_calories %>%
+  group_by(Beverage_category, Beverage, Beverage_prep) %>%
+  summarise(min_calories = min(Calories)) %>%
+  arrange(min_calories) %>%
+  head(1)
+
+drink_calories %>%
+  filter(Beverage_category != "Tazo® Tea Drinks") %>%
+  group_by(Beverage_category, Beverage, Beverage_prep) %>%
+  summarise(min_calories = min(Calories)) %>%
+  arrange(min_calories) %>%
+  head(1)
+```
+ 
 
 
 
