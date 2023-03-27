@@ -269,7 +269,7 @@ book_list %>%
 Answer:
 
 There appears to be errors with page number for the books as there are many 
-books with 1 page which does not appar to be correct. 
+books with 1 page which does not appear to be correct. 
 
 ## How many books have a greater than average number of pages?
 

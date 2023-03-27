@@ -1,0 +1,154 @@
+---
+title: "Week2_Day1_Homework"
+author: "DC"
+date: "2023-03-27"
+output: html_document
+---
+##Q1
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(janitor)
+card_base <- read.csv("data/CardBase.csv")
+customer_base <- read.csv("data/CustomerBase.csv")
+fraud_base <- read.csv("data/FraudBase.csv")
+transaction_base <- read.csv("data/TransactionBase.csv")
+hat_observations <- read.csv("data/hat_observations.csv")
+```
+
+```{r}
+card_base <- clean_names(card_base)
+customer_base <- clean_names(customer_base)
+fraud_base <- clean_names(fraud_base)
+transaction_base <- clean_names(transaction_base)
+```
+
+##Q2
+
+```{r}
+card_base
+customer_base
+```
+```{r}
+inner_join(card_base, customer_base, "cust_id")
+```
+
+##Q3
+
+
+```{r}
+full_join(fraud_base, transaction_base, "transaction_id")
+```
+
+
+##Q4
+
+```{r}
+#unique(transaction_base)
+```
+
+```{r}
+card_base
+transaction_base
+```
+
+```{r}
+semi_join(card_base, transaction_base, by = c("card_number" = "credit_card_id"))
+```
+
+
+
+
+##Q5
+
+```{r}
+hat_observations
+```
+
+```{r}
+(hat_observations_new <- hat_observations %>% 
+  separate(observation, c("hat_colour", "hat_type")))
+              
+```
+
+
+##Q6
+
+```{r}
+hat_observations_new %>% 
+  unite(date, c("day", "month", "year"), sep = "/") %>% 
+  filter(hat_type == "beret") %>% 
+  arrange(desc(observation_count)) %>% 
+  head(1) %>% 
+  pull(date)
+  
+  
+```
+
+#Extension
+
+##Q1
+
+```{r}
+(card_customer_base <- inner_join(card_base, customer_base, "cust_id"))
+
+(card_customer_base_new <- card_customer_base %>% 
+    relocate(card_number, .after = customer_vintage_group))
+
+```
+
+```{r}
+(fraud_transaction_base <- full_join(fraud_base, transaction_base, 
+                                     "transaction_id"))
+
+(fraud_transaction_base_new <- fraud_transaction_base %>% 
+  relocate(credit_card_id, .before = transaction_id) %>% 
+    relocate(fraud_flag, .after = transaction_segment))
+```
+
+
+```{r}
+(joined_dataset <- inner_join(card_customer_base_new, fraud_transaction_base_new, 
+                            c("card_number" = "credit_card_id"))) %>% 
+  filter(!is.na(fraud_flag))
+
+(final_joined_dataset <- joined_dataset %>% 
+  filter(!is.na(fraud_flag)) %>% 
+  relocate(card_number, .before = card_family))
+
+```
+```{r}
+colSums(is.na(joined_dataset))
+```
+
+
+
+## Q2
+
+```{r}
+(exam_scores <- read.csv("data/exam_scores.csv"))
+```
+
+```{r}
+exam_scores %>% 
+  pivot_longer(cols = starts_with("exam"),
+               names_to = "exam_question",
+               values_to = "exam_scores") %>% 
+  separate(exam_question, c("exam_", "question"), sep = "_") %>% 
+  select(id, question, exam_scores)
+  
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
