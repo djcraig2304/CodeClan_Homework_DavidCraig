@@ -23,12 +23,25 @@ names(movies)
 
 
 ```
+```{r}
+movies
+```
 
 ## Question 1:
 Large file with 13 columns ("original_title"    "title"             "homepage"          "budget"            "original_language" "overview"          "popularity"       
  [8] "release_date"      "revenue"           "runtime"           "tagline"           "vote_average"      "vote_count") 
  
  and 4803 rows
+ 
+ ## Answers
+ 
+ can also use:
+ 
+total number of missing values in dataset
+sum(is.na(movies))
+
+how many rows are lost if you drop NAs
+nrow(movies) - nrow(drop_na(movies))
  
  
  ## Question 2
@@ -72,8 +85,21 @@ movies_selected %>%
 
 movies_selected %>% 
   summarise(count = sum(is.na(title)))
-#confirmed that only two NAs exist in the runtime column
+#confirmed that only two NAs exist in the runtime column, not an efficient answer. DRY code - don't repeat yourself!!
 ```
+ Answer:
+ 
+ movies_selected %>% 
+  summarise(na_runtime = sum(is.na(runtime)),
+            na_title = sum(is.na(title)),
+            na_budget = sum(is.na(budget)))
+            
+ Alternative answer:
+ 
+ colSums(is.na(movies_selected))
+ 
+ other one is rowSums()
+ 
  ##Question 4
  
  
@@ -89,7 +115,13 @@ movies_selected_new %>%
   filter(is.na(runtime)) %>% 
   count(runtime = NA)
 ```
+ Answer: 
  
+ movies_runtime <- movies_selected %>%
+  mutate(runtime = na_if(runtime, 0))
+
+movies_runtime %>% 
+  summarise(count = sum(is.na(runtime)))
  
  ## Question 5
  
@@ -100,7 +132,14 @@ movies_selected_new %>%
 
 
 ```
+ 
+ Answer:
+ 
+ movies_imputed <- movies_runtime %>%  
+  mutate(runtime = coalesce(runtime, median(runtime, na.rm = TRUE)))
 
+movies_imputed %>% 
+  summarise(count = sum(is.na(runtime)))
  
  
  ##Question 6
@@ -117,15 +156,21 @@ slice_max(runtime, n = 10)
  ## Question 7
  
 ```{r}
-new_movies_imputed <- movies_imputed %>% 
+movies_imputed <- movies_imputed %>% 
   mutate(budget = if_else(budget < 100 | 0, median(budget), budget))
 
-new_movies_imputed %>% 
+movies_imputed %>% 
   filter(budget == 0)
 
-new_movies_imputed
+movies_imputed
 ```
  
+ Answer:
+ 
+ movies_imputed <- movies_imputed %>% 
+  mutate(budget = if_else(budget < 100, median(budget), budget))
+  
+  
  ## Extension
  
  ## Question 1
@@ -154,10 +199,24 @@ movies %>%
     "original_title" "title" "homepage" "original_language" "overview" "release_date" "tagline" == NA))
 ```
 
+ Answer to final question:
+ 
+ movies %>%
+  summarise(across(where(is.numeric), ~sum(is.na(.x))))
+  
+  movies %>%
+  summarise(across(where(is.character), ~sum(is.na(.x))))
  
  
+ Alternative answer:
  
- 
+ movies %>% 
+  mutate(across(.cols= is.character,
+                .fns = is.na)) %>% 
+  mutate(across(.cols = is.numeric,
+                .fns = is.na)) %>% 
+  summarise(across(.cols = where(is.logical),
+                   .fns = sum))
  
  
  

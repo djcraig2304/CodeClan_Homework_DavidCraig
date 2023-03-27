@@ -1,0 +1,364 @@
+---
+title: "Week_1_Homework"
+author: "DC"
+date: "2023-03-24"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+
+books <- read.csv("books.csv")
+
+library(janitor)
+```
+
+```{r}
+#view(books)
+
+# glimpse(books)
+
+# summary(books)
+
+
+# NB -first thing to do is clean data, identify both standard and non-standard nas
+
+## Potential questions  which books were the oldest published and most recently published?, are the most oldest published books the highest rated?, which book is the longest? Which book is the shortest? do shorter books have the best rating? do longer books have the highest rating?  is there a relationship between the length of the book and the average rating? Which authors have the highest rated books? which authors have the lowest rated books? Which publisher publishes the most/least books? Which books has the greatest number of text reviews? 
+
+
+```
+
+
+## Data Cleaning
+
+
+```{r}
+book_list <- books %>% 
+  clean_names()
+
+#book_list
+# use janitor to format the names
+```
+
+
+```{r}
+# Checked for standard NAs in each columns. 
+
+  colSums(is.na(book_list))
+
+# No standard NAs were found in any column. 
+
+```
+
+```{r}
+# Tried to identify non-standard in NAs in the dataset.
+book_list %>% 
+  unique() %>% 
+  length()
+```
+
+```{r}
+
+# checked for 0's in each column that may seem out of place. In num_pages is 
+#strange to see 76 0's as books must have a minimum of 1 page.
+
+colSums(book_list == 0)
+```
+
+```{r}
+#decided to explore num_pages further
+
+book_list %>% 
+  count(num_pages) %>% 
+ filter(num_pages <= 100) %>% 
+  mutate(pages_less_than_100 = sum(n))
+
+# Used 100 pages as an arbitrary threshold for a num_pages, I wanted to see the 
+# total number of books on the list with less than 100 pages and also wanted to 
+#see for each num_pages recorded how many books have that number. 
+
+# books with pages less than 100 = 1045, columns on left and middle shown for 
+#each page number. 
+```
+
+
+Used google to check what the average book pages number is (between 200 - 400 )
+so decided to change all 0 values to 299 which is the median value for page 
+number from the book.csv data set. Extracted median value using summary() above.
+
+```{r}
+book_list <- book_list %>% 
+  mutate(num_pages = coalesce(num_pages, median(num_pages, na.rm = TRUE)))
+
+book_list
+
+```
+
+Added new column with publication date as date variable so that I could organise
+the dataset by date: could not get rid of parsing error message after re-coding
+
+```{r}
+book_list <- book_list %>% 
+  mutate(publication_date = ifelse(publication_date == "11/31/2000", 
+                                    "10/31/2000", 
+                                    publication_date))
+```
+
+```{r}
+book_list <- book_list %>% 
+  mutate(publication_date = ifelse(publication_date == "06/31/1982", 
+                                    "06/01/1982", 
+                                    publication_date))
+
+```
+
+```{r}
+  book_list <- book_list %>% 
+  mutate(new_pub_date = mdy(publication_date))
+
+book_list
+```
+
+
+ 
+
+```{r}
+#organised by date to see if previous function worked 
+#book_list %>% 
+# arrange(new_pub_date)
+```
+
+Decided to remove rowid and book_id from dataset as I thought they didn't add 
+value to analysis.
+
+```{r}
+(book_list <- book_list %>% 
+  select(title:new_pub_date))
+```
+
+```{r}
+# I used the distinct function to remove any duplicate values from the data.
+
+(distinct(book_list))
+
+# All rows appear to be distinct.
+
+```
+
+
+
+# Questions:
+
+For the questions I decided to look at each columns and see what information
+I could get from each.
+
+## Question: What "Harry Potter" books appear on the list?
+
+```{r}
+book_list %>% 
+  filter(str_detect(title, "Harry Potter"))
+ 
+```
+Answer: 26 books mentioning the phrase Harry Potter appear on the list.
+
+
+## Question: How many Lord of the Rings books appear on the list?
+
+```{r}
+book_list %>% 
+  filter(str_detect(title, "Lord of the Rings")) %>% 
+  count()
+
+  
+  
+```
+Answer: 37 "Lord of the Rings" book appear on the list.
+
+How many books mentioning the word "love" appear on the list?
+
+```{r}
+book_list %>% 
+  filter(str_detect(title, "Love ")) %>% 
+  count()
+# Important to put a space after the word "Love " or it will return other strings
+# ie lover, beloved etc 
+```
+Answer: 113 books mention the word love.
+
+
+## Question: Which authors have written the most books on the list? List Top 10.
+
+```{r}
+(author_list <-  book_list %>% 
+  group_by(authors) %>% 
+  count(authors) %>% 
+  arrange(desc(n)) %>% 
+  head(10))
+```
+
+## Question: Which authors have written the least number of book (1 book) on the list? 
+
+```{r}
+book_list %>% 
+  group_by(authors) %>% 
+  count(authors) %>% 
+  filter(n == 1)
+
+# 5278 authors on the list only appear once so have only written one book.
+  
+```
+
+
+## Question: Which book has the highest amount of ratings?
+
+```{r}
+(top_ten_most_rated_books <- book_list %>% 
+  select(title, authors, ratings_count) %>% 
+  arrange(desc(ratings_count)) %>% 
+  head(10))
+
+# Twilight is the book which has been rated the most times in on the list. 
+  
+  
+```
+
+Which book
+
+
+
+
+
+## Which books was published first on the list? 
+
+```{r}
+book_list %>% 
+  select(title, authors, new_pub_date) %>% 
+  arrange(new_pub_date) %>% 
+  head(1)
+```
+## Which are the ten most recently published books?
+
+```{r}
+book_list %>% 
+  select(title, authors, new_pub_date) %>% 
+  arrange(desc(new_pub_date)) %>% 
+  head(10)
+```
+
+
+## Which book is the longest? Top 10 longest.
+
+```{r}
+book_list %>% 
+  select(title, authors, num_pages) %>% 
+  arrange(desc(num_pages)) %>% 
+  head(10)
+```
+
+## Which book is the shortest?
+
+```{r}
+book_list %>% 
+  select(title, authors, num_pages) %>%
+  filter(num_pages > 0) %>% 
+  arrange(num_pages) %>% 
+  head()
+
+
+```
+Answer:
+
+There appears to be errors with page number for the books as there are many 
+books with 1 page which does not appar to be correct. 
+
+## How many books have a greater than average number of pages?
+
+```{r}
+book_list %>% 
+  mutate(greater_than_mean = num_pages > mean(num_pages), 
+         greater_than_median = num_pages > median(num_pages)) %>% 
+  count(greater_than_mean, greater_than_median)
+  
+```
+
+
+## What languages were the books published in?
+
+```{r}
+book_list %>% 
+  group_by(language_code) %>% 
+  count() %>% 
+  arrange(desc(n))
+```
+
+The books were published in 27 different languages. The most common was English 
+(eng, en-US, en-GB).
+
+## What is the mean average rating and how many books have a greater than 
+average rating?
+
+```{r}
+(mean_rating <- book_list %>% 
+  summarise(mean(average_rating)) %>% 
+  pull())
+
+## Average rating is 3.934075
+```
+
+```{r}
+book_list %>% 
+  count(greater_than_av_rating = average_rating >= mean_rating)
+```
+
+Answer 5960 books have a greater than mean average rating. 
+
+# What is the average rating of the 10 lowest rated books?
+
+```{r}
+book_list %>% 
+  select(title, authors, average_rating, ratings_count) %>% 
+  arrange(average_rating) %>%
+  summarise(av_ten_lowest = mean(head(average_rating)))
+  
+```
+
+Average rating of 10 lowest rated books on list was 0 (maybe unrated).
+
+## Question What is mean rating of all "Harry Potter" books?
+
+```{r}
+book_list %>% 
+  filter(str_detect(title, "Harry Potter")) %>% 
+           select(title, average_rating) %>% 
+  summarise(mean_HP_book_rating = mean(average_rating))
+```
+ 
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
