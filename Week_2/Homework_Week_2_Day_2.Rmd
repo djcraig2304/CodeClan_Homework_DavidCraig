@@ -1,0 +1,127 @@
+---
+title: "Week 2 Day 2 Homework"
+author: "DC"
+date: "2023-03-28"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(janitor)
+code_clan_tweets <- read.csv("4_homework/data/code_clan_tweets.csv")
+code_clan_info <- read.csv("4_homework/data/code_clan_info.csv")
+```
+
+
+
+## Question 1:
+```{r}
+#view(code_clan_tweets)
+glimpse(code_clan_tweets)
+
+```
+##Question 2
+
+
+```{r}
+code_clan_tweets %>%  
+  filter(is_quote == FALSE) %>% 
+  summarise(total = sum(favorite_count)) %>% 
+              pull()
+```
+
+## Question 3
+
+```{r}
+#summary(code_clan_tweets)
+```
+
+```{r}
+code_clan_tweets %>%
+  group_by(source) %>%
+  filter(is_quote == FALSE) %>% 
+  summarise(mean_retweets = mean(retweet_count))
+```
+
+```{r}
+code_clan_tweets %>% 
+  group_by(media_type) %>%
+  mutate(media_type = coalesce(media_type, "text")) %>% 
+  count()
+  
+  
+```
+
+## Question 5
+
+```{r}
+code_clan_tweets %>% 
+  summarise(mean_character_number = mean(display_text_width)) %>% 
+  pull()
+```
+## Question 6
+
+```{r}
+glimpse(code_clan_info)
+```
+
+```{r}
+(
+  codeclan_tweet_info <- inner_join(code_clan_tweets, code_clan_info, "tweet_id")
+)
+```
+
+## Question 7
+
+```{r}
+# made tibble called codeclan_hashtags
+(
+codeclan_hashtags <- codeclan_tweet_info %>% 
+  select(tweet_id, hashtags) %>% 
+  as_tibble() %>% 
+  mutate(hashtags = str_to_lower(hashtags)) %>% 
+  filter(!is.na(hashtags))
+)
+```
+
+
+## Extensions
+
+## Question 8
+
+```{r}
+codeclan_hashtags %>% 
+  filter(str_detect(hashtags, ("c\\(")))
+          
+```
+
+
+## Question 9
+
+```{r}
+code_clan_tweets %>% 
+  filter(str_detect(text, "Edinburgh"))
+```
+
+
+## Question 10:
+
+```{r}
+code_clan_tweets %>% 
+  filter(!is.na(reply_to_screen_name)) %>% 
+  select(screen_name, reply_to_screen_name)
+```
+
+```{r}
+
+pattern_1 <- "@[a-zA-Z0-9_]+"
+  
+  code_clan_tweets %>% 
+  str_extract(text, pattern_1)
+
+```
+
+
+
+
