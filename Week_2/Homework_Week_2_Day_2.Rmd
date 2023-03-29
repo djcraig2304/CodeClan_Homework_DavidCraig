@@ -52,6 +52,13 @@ code_clan_tweets %>%
   
   
 ```
+Answer: 
+
+codeclan_tweets %>%
+  mutate(media_type = coalesce(media_type, "text")) %>%
+  group_by(media_type) %>%
+  summarise(favourite_count_total = sum(favorite_count)) %>%
+  arrange(desc(favourite_count_total))
 
 ## Question 5
 
@@ -60,6 +67,14 @@ code_clan_tweets %>%
   summarise(mean_character_number = mean(display_text_width)) %>% 
   pull()
 ```
+Answer:
+# alternative way of testing the str_length function
+code_clan_tweets_text <- codeclan_tweets %>%
+  mutate(count_str_length = str_length(text)) %>%
+  select(count_str_length, display_text_width)
+
+code_clan_tweets_text
+
 ## Question 6
 
 ```{r}
@@ -71,6 +86,7 @@ glimpse(code_clan_info)
   codeclan_tweet_info <- inner_join(code_clan_tweets, code_clan_info, "tweet_id")
 )
 ```
+
 
 ## Question 7
 
@@ -103,7 +119,13 @@ codeclan_hashtags %>%
 code_clan_tweets %>% 
   filter(str_detect(text, "Edinburgh"))
 ```
-
+ Answer:
+ 
+ # 9: Use the str_detect() function to find all cases where a tweet text mentions edinburgh, and count in how many tweets it appears
+codeclan_tweets %>%
+  mutate(lowcase_tweets = str_to_lower(text)) %>%
+  filter(str_detect(lowcase_tweets, "edinburgh")) %>%
+  summarise(count = n())
 
 ## Question 10:
 
@@ -125,5 +147,10 @@ pattern_1 <- "[a-zA-Z0-9_]+"
 ```
 
 
+Answer: 
 
+user_pattern <- "@[a-zA-Z0-9_]+"
+tweets <- codeclan_tweets %>% 
+  select(text)
+head(str_extract_all(tweets$text, user_pattern))
 

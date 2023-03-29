@@ -1,0 +1,172 @@
+---
+title: "Week_2_Day_3_Homework"
+author: "DC"
+date: "2023-03-29"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+Question 1:
+
+
+```{r}
+day_of_week <- c("Thursday", "Friday", "Saturday")
+temperature_celsius <- c(13, 12, 9)
+chance_of_rain <- c("80%", "70%", "70%")
+wind_speed <- c("11mph", "10mph", "9mph")
+
+
+list(day_of_week, temperature_celsius, chance_of_rain, wind_speed)
+```
+```{r}
+three_day_weather <- list(
+  "Thursday" = list(temp = "13 degrees", rain ="80%", wind = "11mph"),
+  "Friday" = list(temp = "12 degrees", rain ="70%", wind = "10mph"),
+  "Saturday" = list(temp = "9 degrees", rain ="70%", wind = "9mph")
+)
+three_day_weather
+```
+
+
+
+Question 2:
+
+```{r}
+#i
+(chance_of_rain_tomorrow <- three_day_weather$Thursday$rain)
+
+#ii
+(saturday_wind_speed <- three_day_weather$Saturday$wind)
+
+#iii
+(temp_tomorrow <- three_day_weather$Thursday$temp)
+
+
+```
+Question 3:
+
+```{r}
+
+temperature_14_days <- c(13, 13, 9, 10, 11, 12, 12, 11, 10, 11, 10, 8, 8, 12)
+  
+temperature_forecast <- matrix(temperature_14_days, nrow = 2, ncol = 14)
+
+colnames(temperature_forecast) <- c("Thursday", "Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday", "Monday", "Tuesday", "Wednesday")
+rownames(temperature_forecast) <- c("Week 1", "Week 2")
+
+temperature_forecast
+```
+Question 4:
+
+```{r}
+temperature_forecast[2, 3]
+temperature_forecast[2, 8:14]
+temperature_forecast[, c(1, 3 ,5)]
+```
+Question 5:
+function_name <- function(argument_1, argument_2 = FALSE){
+  do something with the inputs/arguments
+  
+```{r}
+get_answer <- function(x) {
+  if(is.character(x)) {
+    print("The answer is: ", x)
+  }
+   else if (is.numeric(x) & x < 10) {
+    print(x)
+   }
+  if(is.numeric(x) & x <= 10){
+    print(x / 10)
+  }
+  else {
+    (print("Invalid input"))
+}
+}
+
+get_answer("5")
+
+```
+
+
+
+
+
+```{r}
+get_answer <- function(x){
+if (is.character(x)) {
+    return(paste0("The answer is: ", x))
+  } else if (is.numeric(x)) {
+    if (x < 10) {
+      return(x)
+    } else {
+      return(x / 10)
+    }
+  } else {
+    return("Invalid input")
+  }
+}
+get_answer("HI")
+```
+
+Question 6:
+
+```{r}
+vector1 <- c(1, 2, 3)
+vector2 <- c(1, 2, 3)
+vector3 <- c(3, 2, 1)
+vector4 <- c(4, 5, 6)
+```
+
+
+```{r}
+equals <- function(x, y) {
+  if (identical(x, y)) {
+    print("Exactly the same")
+  }
+  else if (identical(x, sort(y))) {
+    print("The same")
+  } else{
+    print("Different")
+  }}
+equals(vector2, vector3)
+
+```
+
+
+Extension
+
+Question 7:
+
+```{r}
+matrix_12 <- matrix(nrow = 12, ncol =12)
+matrix_12
+
+n_row <- dim(matrix_12)[1]
+n_col <- dim(matrix_12)[]
+
+numbers_to_12 <- c(1:12)
+
+for(row_items in 1:n_row) {
+  for (col_items in 1:n_col) {
+    matrix_12[row_items, col_items] <- row_items * col_items
+  }
+}
+
+matrix_12
+
+
+
+```
+
+
+Question 8:
+
+
+
+
+
+
+
