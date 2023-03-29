@@ -114,11 +114,13 @@ code_clan_tweets %>%
 ```
 
 ```{r}
+(string <- code_clan_tweets %>% 
+  select(text))
 
-pattern_1 <- "@[a-zA-Z0-9_]+"
+pattern_1 <- "[a-zA-Z0-9_]+"
   
   code_clan_tweets %>% 
-  str_extract(text, pattern_1)
+  str_extract_all(string, pattern = pattern_1, simplify = TRUE)
 
 ```
 
