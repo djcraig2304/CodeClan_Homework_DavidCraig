@@ -10,7 +10,7 @@ SELECT
 	teams."name" 
 FROM employees
 INNER JOIN teams 
-ON employees.team_id = team_id; 
+ON employees.team_id = teams.id; 
 
 -- (b). Find the first name, last name and team name of employees who are members of teams and are enrolled in the pension scheme.
 
@@ -20,7 +20,7 @@ SELECT
 	teams."name" 
 FROM employees
 INNER JOIN teams 
-ON employees.team_id = team_id
+ON employees.team_id = teams.id
 WHERE pension_enrol = TRUE; 
 
 -- (c). Find the first name, last name and team name of employees who are members of teams, where their team has a charge cost greater than 80.
@@ -31,7 +31,7 @@ SELECT
 	teams."name" 
 FROM employees
 INNER JOIN teams 
-ON employees.team_id = team_id
+ON employees.team_id = team.id
 WHERE teams.charge_cost = '100';
 
 SELECT 
@@ -40,7 +40,7 @@ SELECT
 	teams."name" 
 FROM employees
 INNER JOIN teams 
-ON employees.team_id = team_id
+ON employees.team_id = teams.id
 WHERE CAST(teams.charge_cost AS NUMERIC) > 80;
 
 -- Q2.
@@ -52,20 +52,19 @@ SELECT
 	pay_details.local_sort_code
 FROM employees 
 INNER JOIN pay_details 
-ON employees.id = pay_detail_id 
+ON employees.pay_detail_id = pay_details.id; 
 
 -- (b). Amend your query above to also return the name of the team that each employee belongs to.
 
 SELECT 
-	employees.*,
-	pay_details.local_account_no,
-	pay_details.local_sort_code,
-	teams."name" 
-FROM 
-	(employees INNER JOIN pay_details 
-	ON employees.id = pay_detail_id)
-INNER JOIN teams 
-ON employees.team_id = teams.id; 
+  e.*,
+  pd.local_account_no,
+  pd.local_sort_code,
+  t.name AS team_name
+FROM employees AS e LEFT JOIN pay_details AS pd
+ON e.pay_detail_id = pd.id
+LEFT JOIN teams AS t
+ON e.team_id = t.id;
 
 --Q3 (a). Make a table, which has each employee id along with the team that employee belongs to.
 
@@ -120,21 +119,19 @@ GROUP BY teams.id, teams."name", teams.charge_cost
 -- (c). How would you amend your query from above to show only those teams with a total_day_charge greater than 5000?
 
 SELECT 
-	teams.id,
 	teams."name",
-	count(employees.id) AS number_employees,
 	count(employees.id) * cast(teams.charge_cost AS numeric) > 5000 AS total_charge_cost_5000
 FROM employees 
 INNER JOIN teams ON employees.team_id = teams.id
 GROUP BY teams.id, teams."name", teams.charge_cost;
 
---Question 5
+--Question 5 How many of the employees serve on one or more committees?
 
 SELECT 
 count(DISTINCT(employee_id))
 FROM employees_committees
 
---Question 6
+--Question 6 How many of the employees do not serve on a committee?
 
 SELECT
 	count(employees.id)
