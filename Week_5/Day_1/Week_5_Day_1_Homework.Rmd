@@ -1,0 +1,331 @@
+---
+title: "Week 5 Day 1 Homework"
+author: "DC"
+date: "2023-04-17"
+output: html_document
+---
+```{r}
+library(tidyverse)
+revenue_breakdown <- CodeClanData::qb_revenue_breakdown
+monthly_sales <- CodeClanData::qb_monthly_sales
+competitors <- CodeClanData::qb_competitors
+device_data <- CodeClanData::qb_device_data
+```
+
+
+MVP PArt 1
+Question 1:
+```{r}
+revenue_breakdown %>% 
+  ggplot() +
+  geom_bar(aes(x = Year, y = Revenue, fill = Product ), stat = "Identity")
+```
+Question 2:
+
+```{r}
+monthly_sales %>% 
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount))
+```
+Question 3:
+
+```{r}
+monthly_sales %>% 
+  filter(Cashflow == c("Total Revenue", "Cost")) %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount, colour = Cashflow))
+  
+```
+
+Question 4:
+
+```{r}
+competitors %>% 
+  ggplot() +
+  geom_area(aes(x = Year, y = Revenue, fill = Company))
+```
+
+Question 5:
+
+```{r}
+competitors %>% 
+  ggplot() +
+  geom_line(aes(x = Year, y = Revenue, colour = Company)) +
+  geom_point(aes(x = Year, y = Revenue, colour = Company))
+```
+Question 6:
+
+```{r}
+device_data %>% 
+  ggplot() +
+  geom_line(aes(x = hours, y = counts, colour = device)) +
+  facet_grid(id ~ device)
+```
+
+Part 2:
+```{r}
+col_scheme <- c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")
+```
+
+Question 1:
+```{r}
+ revenue_breakdown %>% 
+  ggplot() +
+  geom_bar(aes(x = Year, y = Revenue, fill = Product ), stat = "Identity") +
+  labs(x = "\nYear",
+    y = "Revenue\n",
+    title = "Yearly QikBit Revenue",
+    subtitle = "per product in 2018 and 2019",
+    fill = "Product") +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(12)) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040"))
+  
+  
+```
+Question 2:
+
+```{r}
+monthly_sales %>% 
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount)) +
+  labs(x = "\nDate",
+    y = "Amount\n",
+    title = "KwikBit Unit 1 Monthly Sales",
+    subtitle = "over 1 Year (July 2018 to July 2019)",
+    ) +
+  geom_point(aes(x = Date, y = Amount)) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle=90, vjust=.5, hjust=1)) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")) +
+  scale_x_date(limits = c(as.Date("2018-07-01"), as.Date("2019-07-31")),
+               date_breaks = "1 month",
+               date_labels = "%b %Y")
+             
+
+
+```
+Question 3:
+
+```{r}
+monthly_sales %>% 
+  filter(Cashflow == c("Total Revenue", "Cost")) %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount, colour = Cashflow)) +
+  labs(x = "\nDate",
+    y = "Amount\n",
+    title = "Total Revenue and Costs",
+    subtitle = "over 1 Year (July 2018 to July 2019)",
+    ) +
+  geom_point(aes(x = Date, y = Amount)) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle=90, vjust=.5, hjust=1),
+        legend.text = element_text(12)) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")) +
+               scale_x_date(limits = c(as.Date("2018-07-01"), as.Date("2019-07-31")),
+               date_breaks = "1 month",
+               date_labels = "%b %Y")
+
+```
+
+Question 4:
+
+```{r}
+competitors %>% 
+  ggplot() +
+  geom_area(aes(x = Year, y = Revenue, fill = Company)) +
+  labs(x = "\nRevenue",
+    y = "Year\n",
+    title = "Annual Sales Comparison",
+    subtitle = "over 5 Years (2015 to 2019)\n",
+    ) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(12),
+        axis.text.y = element_text()) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE))
+               
+```
+
+Question 6:
+
+```{r}
+device_data %>% 
+  ggplot() +
+  geom_line(aes(x = hours, y = counts, colour = device)) +
+  facet_grid(id ~ device) +
+  labs(x = "\nHours",
+    y = "Step Count\n",
+    title = "Comparison of Steps over Time",
+    subtitle = "For each Person with each Tracker\n",
+    ) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 8)
+       ) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")) 
+
+
+
+```
+
+Extension:
+
+
+```{r}
+
+
+monthly_sales %>% 
+  ggplot() +
+  geom_line(aes(x = Date, y = Amount, colour = Cashflow)) +
+  labs(x = "\nDate",
+    y = "Amount\n",
+    title = "Total Revenue and Costs",
+    subtitle = "over 1 Year (July 2018 to July 2019)",
+    ) +
+  geom_point(aes(x = Date, y = Amount)) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle=90, vjust=.5, hjust=1),
+        legend.text = element_text(12)) +
+  scale_fill_manual(values = c(
+    "#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")) +
+               scale_x_date(limits = c(as.Date("2018-07-01"), as.Date("2019-07-31")),
+               date_breaks = "1 month",
+               date_labels = "%b %Y")
+  
+```
+
+ 
+
+```{r}
+
+  device_data %>% 
+  group_by(device) %>% 
+  summarise(total_step_count = sum(counts)) %>% 
+  ggplot() +
+  geom_bar(aes(x = device, y = total_step_count, fill = device), stat = "Identity") +
+  labs(x = "\nDevice",
+    y = "Total Step Count\n",
+    title = "Total Step Count",
+    subtitle = "for each Device",
+    ) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        axis.text.x = element_text(angle=90, vjust=.5, hjust=1),
+        legend.text = element_text(12)) +
+  scale_fill_manual(values = c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040"))
+```
+
+```{r}
+qikbit_revenue <- revenue_breakdown %>% 
+  group_by(Year) %>% 
+  summarise(Revenue = sum(Revenue)) %>% 
+  mutate(Company = "QikBit",
+         Year = as.numeric(as.character(Year)))
+
+competitor_revenue <- competitors %>% 
+  filter(Year %in% c("2019", "2018"))
+
+full_revenue <- full_join(qikbit_revenue, competitor_revenue) 
+
+full_revenue %>% 
+  mutate(Year = as.factor("Year")) %>% 
+  ggplot() +
+  geom_bar(aes(x = Company, y = Revenue, fill = Company), stat = "Identity") +
+  labs(x = "\nCompany",
+    y = "Total Revenue\n",
+    title = "Total Revenue for 2018 and 2019",
+    subtitle = "for each Company",
+    ) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(12),
+        axis.text.x = element_text(angle=90, vjust=.5, hjust=1)) +
+  scale_fill_manual(values = c("QikBit" = "#E89FE9",
+                               "Competitor 1" = "#50434F", 
+                               "Competitor 2" = "#B6A7B5", 
+                               "Competitor 3" = "#F9A472", 
+                               "Competitor 4" = "#BD7040")) +
+  scale_y_continuous(labels = scales::comma)
+  
+
+
+```
+```{r}
+
+monthly_sales %>% 
+  filter(Cashflow == c("Total Revenue", "Cost")) %>% 
+  group_by(Cashflow) %>% 
+  summarise(Sum = sum(Amount)) %>% 
+  ggplot() +
+  geom_bar(aes(x = Cashflow, y = Sum, fill = Cashflow), stat = "Identity") +
+  labs(x = "\nCashflow",
+    y = "Cashflow Sum\n",
+    title = "Total Cashflow for 2018 and 2019",
+    subtitle = "Cost and Revenue",
+    ) +
+  theme_bw() +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(size = 14),
+        plot.subtitle = element_text(size = 12),
+        axis.title = element_text(size = 10),
+        axis.text = element_text(size = 12),
+        legend.text = element_text(12)) +
+  scale_fill_manual(values = c("QikBit" = "#E89FE9",
+                               "Competitor 1" = "#50434F", 
+                               "Competitor 2" = "#B6A7B5", 
+                               "Competitor 3" = "#F9A472", 
+                               "Competitor 4" = "#BD7040")) 
+
+
+
+  
+```
+
+
+
+
