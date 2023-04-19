@@ -32,9 +32,16 @@ Question 3:
 
 ```{r}
 monthly_sales %>% 
-  filter(Cashflow == c("Total Revenue", "Cost")) %>% 
+  filter(Cashflow %in% c("Total Revenue", "Cost")) %>% 
   ggplot() +
   geom_line(aes(x = Date, y = Amount, colour = Cashflow))
+
+revenue_and_costs <- monthly_sales %>%
+  filter(Cashflow != "Kwikbit Unit 1 Sales")
+
+ggplot(revenue_and_costs) +
+  aes(x = Date, y = Amount, colour = Cashflow) +
+  geom_line() 
   
 ```
 
@@ -198,8 +205,7 @@ device_data %>%
 
 
 
-```
-
+```Answer
 Extension:
 
 
@@ -231,10 +237,17 @@ monthly_sales %>%
   
 ```
 
+Answer:
+qb_device_data <- 
+mutate(qb_device_data, decimal_hour = hours + (mins/60))
+
+ggplot(qb_device_data) +
+  aes(x = decimal_hour, y = counts) +
+  geom_line() + 
+  facet_grid(id ~ device)
  
 
 ```{r}
-
   device_data %>% 
   group_by(device) %>% 
   summarise(total_step_count = sum(counts)) %>% 
