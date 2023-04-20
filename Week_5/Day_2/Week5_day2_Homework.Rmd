@@ -32,7 +32,7 @@ backpack %>%
         axis.title = element_text(size = 10),
         axis.text = element_text(size = 8))
 
-# The distribtuion of the backpack weight is shown with most backpacks, weighing around 10,
+# The distribution of the backpack weight is shown with most backpacks, weighing around 10,
 # there are also some weighing less than 10, some weighing between 10 and 20 and very few weighing
 # more than 20kg or 30kg. either density or histogram plot show the data distribution.
 
@@ -153,6 +153,25 @@ backpack %>%
   ylim(0, 80) 
 
 ```
+```{r}
+backpack %>% 
+  mutate(back_problems = as.logical(back_problems)) %>%
+  count(back_problems) %>% 
+  mutate(prop = n/sum(n)) %>% 
+  ggplot(aes(x = back_problems, y = prop)) +
+  geom_col()
+```
+ggplot can do calculations for us.
+
+```{r}
+backpack %>% 
+  mutate(back_problems = as.logical(back_problems)) %>% 
+  count(back_problems)
+  
+```
+
+
+
 Question 7.
 
 Is this proportion different between men and women?
