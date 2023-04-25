@@ -1,0 +1,155 @@
+---
+title: "Week 6 Day 2 Homework"
+output: html_notebook
+---
+
+Question 1:
+```{r}
+library(tidyverse)
+library(janitor)
+
+phone_details <- read_csv("data/20190928-items.csv") %>% 
+  clean_names()
+
+glimpse(phone_details)
+
+distinct(phone_details)
+
+# The data set is made of 792 distinct rows with 9 columns related to phone 
+# details. These are listed in the glimpse. There are 2 numerical columns and 7 character columns.
+```
+Question 2:
+
+```{r}
+phone_details %>% 
+  group_by(brand) %>% 
+  summarise(count = n()) %>% 
+  arrange(desc(count)) %>% 
+  head(1)
+
+# To get the brand with the highest number of phones in the data set I counted the amount of times in the column "brand" each phone was mentioned and arranged in descending numerical order and selected the top count. The answer is Samsung.
+```
+Question 3:
+
+```{r}
+
+phone_details_stats <- phone_details %>% 
+  filter(brand == "Samsung") %>% 
+  # select(rating) %>%
+summarise(num_values = n(),
+            mean = mean(rating),
+            sd = sd(rating))
+
+# phone_details %>% 
+#   filter(brand == "Samsung") %>% 
+#   select(rating) %>% 
+#   ggplot() +
+#   aes(x = rating) %>% 
+#   geom_histogram(colour = "black")
+
+
+phone_details %>% 
+  filter(brand == "Samsung") %>% 
+  select(rating) %>% 
+  ggplot() +
+  aes(x = rating, y = after_stat(density)) %>% 
+  geom_histogram(colour = "black") +
+  stat_function(
+    fun = dnorm,
+    args = list(
+      mean = phone_details_stats$mean,
+      sd = phone_details_stats$sd
+             ), 
+    colour = "red"
+    )
+  
+
+# The code above creates a histogram with a red line plotting the normal distribution for the data set. From the histogram, we can see the data indeed follows an almost normal distribution with most of the ratings values being approximately between 2 and 5 with what could be an outlier point(s) giving a value of rating of less than 1. This gives the data distribution the appearance that it may be slightly skewed to the right.  
+
+```
+
+Question 4:
+
+
+```{r}
+# 1 SD of mean
+prop1sd <- phone_details %>%
+  filter(rating >= phone_details_stats$mean - phone_details_stats$sd) %>%
+  filter(rating <= phone_details_stats$mean + phone_details_stats$sd) %>%
+  summarise(prop_within_1sd = n() / nrow(phone_details)) %>% 
+  pull()
+```
+
+```{r}
+# 2 SD OF MEAN
+prop2sd <- phone_details %>%
+  filter(rating >= phone_details_stats$mean - 2 * phone_details_stats$sd) %>%
+  filter(rating <= phone_details_stats$mean + 2 * phone_details_stats$sd) %>%
+  summarise(prop_within_2sd = n() / nrow(phone_details)) %>% 
+  pull()
+```
+
+```{r}
+# 3 SD OF MEAN
+prop3sd <- phone_details %>%
+  filter(rating >= phone_details_stats$mean - 3 * phone_details_stats$sd) %>%
+  filter(rating <= phone_details_stats$mean + 3 * phone_details_stats$sd) %>%
+  summarise(prop_within_3sd = n() / nrow(phone_details)) %>% 
+  pull()
+```
+
+```{r}
+#normal distribution SD values
+n_prop1sd <- 100 * (pnorm(q = 1) - pnorm(q = -1))
+
+n_prop2sd <- 100 * (pnorm(q = 2) - pnorm(q = -2))
+
+n_prop3sd <- 100 * (pnorm(q = 3) - pnorm(q = -3))
+```
+
+```{r}
+prop_dist <- tibble(
+  normal_dist_prop = c(n_prop1sd, n_prop2sd, n_prop3sd),
+  phone_dist_prop = c(prop1sd, prop2sd, prop3sd) 
+) %>% 
+  mutate(phone_dist_prop = phone_dist_prop * 100)
+
+prop_dist
+
+## W can see from the table that the distribution proportions values for the norm dist and our phone  data are close but do not exactly match. The fact that the nrom dist for the phone data is off by  approx 10 is probably due to the fact we have included the rating value of 1 outliers.
+```
+
+Extension:
+
+```{r}
+  qqnorm(phone_details$rating, pch = 1, frame = FALSE)
+  qqline(phone_details$rating, col ="red", lwd = 2) 
+  
+  # The qq plot below shows that the data almost follows a normal distributionas shown by the red line but the points at the bottom and top of the graph influence the data point distribution here.
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
