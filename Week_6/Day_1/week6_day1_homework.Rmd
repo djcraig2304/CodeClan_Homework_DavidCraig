@@ -1,0 +1,125 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(gtools)
+library(tidyverse)
+source("day_1/prob.R")
+
+titanic<- read_csv("day_1/5_quiz_and_homework/data/titanic.csv")
+
+titanic %>% 
+ distinct(class)
+```
+```{r}
+
+titanic_new <- titanic %>% 
+  mutate(pass_or_crew =
+    ifelse(
+      class %in% 
+        c("engineering crew", "victualling crew", "restaurant staff", "deck crew"), 
+      "crew", "passenger")) 
+
+```
+
+```{r}
+titanic_new %>% 
+tabyl(pass_or_crew, survived) %>% 
+  adorn_totals(where = c("row", "col"))
+```
+p(A | B) = p(A given B) = p(A AND B) / P(B)
+
+p(survived | crew) = p(survived & crew) / p(crew)
+                   = (211/890) / (890/ 2207) = 0.5879018
+
+```{r}
+# (211/890) / (890/ 2207)
+# 
+# (500/1317) / (1317/2207)
+```
+
+p(survived | passenger) = p(survived & passenger) / p(passenger)
+                        = (500/1317) / (1317/2207) = 0.6362104
+                        
+                        
+1.2 
+
+Question 1:
+
+Probability of rolling a six sided die once and getting a number less than five is 4/6 (2/3 or 0.666)
+
+Question 2:
+
+```{r}
+s_three_dice <- rolldie(3, nsides = 6)
+#therea re 216 possible outcomes rolling a three 6-sided dice at once.
+```
+Question 3:
+
+In an experiment where we roll four dice:
+
+how many outcomes are in the event where the total of the four dice equals 5
+, 6 or 7)?
+
+what is the probability of this event?
+
+what assumptions do we apply in answering part ii?
+
+```{r}
+
+four_die <- rolldie(4, nsides = 6)
+
+four_die %>% 
+  filter(X1 + X2 + X3 + X4 > 4 & X1 + X2 + X3 + X4 < 8)
+
+# There are 34 possible outcomes. 
+
+34/1296
+#the probability is 0.02623457
+
+# we assume that we can get repeated values for each die ie multiple 1's or 2's
+```
+
+Question 4
+
+```{r}
+permutations(
+  n = 5,
+  r = 5, 
+  v = c(1, 2, 3, 4, 5),
+  repeats.allowed = FALSE
+) %>% 
+  as.tibble() %>% 
+  filter(V1 == 5, V2 == 4, V3 == 3, V4 == 2, V5 == 1)
+
+#1/120 chance that they sit in order of decreasing height, left to right.
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
