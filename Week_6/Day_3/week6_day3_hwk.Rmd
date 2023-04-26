@@ -1,0 +1,134 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Task 1:
+
+```{r}
+ames <- read_csv("ames.csv") %>% 
+  clean_names()
+glimpse(ames)
+```
+
+Task 2:
+
+```{r}
+ames %>%
+  ggplot() +
+  aes(x = lot_area) +
+  geom_histogram(bins = 1000) 
+
+#the data is not normally distributed it is is skewed to the right. There is a long tail at the highest lot_area values.
+```
+Task 3:
+
+```{r}
+
+# here I took a bootstrap sample of the mean lot area, taking 100 samples 5000 times
+ames_bootstrap_resample_100 <- ames %>% 
+  rep_sample_n(size = 100, replace = TRUE, reps = 5000) %>%
+  summarise(
+    mean_lot_area = mean(lot_area)
+  )
+# below we visualise the sampling distribution
+ames_bootstrap_resample_100 %>% 
+  ggplot() +
+  aes(x = mean_lot_area) +
+  geom_histogram(bins = 25)
+
+```
+
+Task 4:
+
+```{r}
+#below we find the 95 %CI interval for our re-sampled bootstrap data distribution
+ames_bootstrap_resample_100 %>% 
+  summarise(
+    mean = mean(mean_lot_area),
+    lower_bound = quantile(mean_lot_area, prob = 0.025),
+    upper_bound = quantile(mean_lot_area, prob = 0.975)
+  )
+
+```
+Task 5 and Task 6:
+```{r}
+# below we find the 99% CI interval for our re-sampled bootstrap data distribution
+# the confidence interval is broader 
+# the point estimate is shown on the data as well 10156.7.
+
+ames_bootstrap_resample_100 %>% 
+  summarise(
+    mean = mean(mean_lot_area),
+    lower_bound = quantile(mean_lot_area, prob = 0.01),
+    upper_bound = quantile(mean_lot_area, prob = 0.99)
+  )
+
+```
+
+
+Extension:
+
+Task 1 
+
+```{r}
+# ames_prop_before_1920 <- ames %>% 
+#   summarise(prop_ames = sum(year_built < 1920) / n()
+#             )
+# 
+# ames_prop_before_1920 %>% 
+#   rep_sample_n(size = 100, replace = TRUE, reps = 5000) %>% 
+#   summarise(mean_lot_area = mean(prop_ames))
+
+# ames %>% 
+#   filter(year_built < 1920) %>% 
+#   rep_sample_n(size = 100, replace = TRUE, reps = 5000) %>%
+#   summarise(
+#     mean_lot_area = mean(lot_area))
+  
+
+infer_resample_5000 <- ames %>% 
+  filter(year_built < 1920) %>% 
+  specify(response = year_built) %>% 
+  generate(reps = 5000, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+infer_ci_95_5000 <- infer_resample_5000 %>% 
+  get_confidence_interval(level = 0.95, type = "percentile")
+
+#Yes the number of reps will alter the CI interval. 
+
+
+infer_resample_200 <- ames %>% 
+  filter(year_built < 1920) %>% 
+  specify(response = year_built) %>% 
+  generate(reps = 200, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+infer_ci_95_200 <- infer_resample_200 %>% 
+  get_confidence_interval(level = 0.95, type = "percentile")
+
+
+infer_resample_50000 <- ames %>% 
+  filter(year_built < 1920) %>% 
+  specify(response = year_built) %>% 
+  generate(reps = 200, type = "bootstrap") %>% 
+  calculate(stat = "mean")
+
+infer_ci_95_50000 <- infer_resample_50000 %>% 
+  get_confidence_interval(level = 0.95, type = "percentile")
+
+# No the number of reps did not  alter the CI interval too much between 200, 5000 
+# and 50000 reps
+
+infer_ci_95_200
+infer_ci_95_5000
+infer_ci_95_50000
+
+
+
+  
+```
+
+
+

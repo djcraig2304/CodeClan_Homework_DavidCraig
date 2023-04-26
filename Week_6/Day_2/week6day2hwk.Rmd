@@ -125,7 +125,7 @@ Extension:
   qqnorm(phone_details$rating, pch = 1, frame = FALSE)
   qqline(phone_details$rating, col ="red", lwd = 2) 
   
-  # The qq plot below shows that the data almost follows a normal distributionas shown by the red line but the points at the bottom and top of the graph influence the data point distribution here.
+  # The qq plot below shows that the data almost follows a normal distributions shown by the red line but the points at the bottom and top of the graph influence the data point distribution here.
 ```
 
 
