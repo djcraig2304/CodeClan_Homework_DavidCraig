@@ -6,6 +6,9 @@ output: html_notebook
 Task 1:
 
 ```{r}
+library(tidyverse)
+library(infer)
+library(janitor)
 ames <- read_csv("ames.csv") %>% 
   clean_names()
 glimpse(ames)
