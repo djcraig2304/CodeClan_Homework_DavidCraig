@@ -1,0 +1,41 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(modelr)
+library(ggfortify)
+
+project_management <- read_csv("data/project_management.csv")
+
+project_management %>% 
+  ggplot() +
+  aes(x = estimated_length, y = actual_length) +
+  geom_point() +
+  geom_
+
+project_management %>% 
+summarise(cor(x = estimated_length, y = actual_length))
+# the correaltion coefficient of 0.8046697 suggests that there is strong correlation between
+# estimated length and actual length
+
+l_model <- lm(formula = actual_length ~ estimated_length, data = project_management)
+
+l_model
+#A 1 unit (day?) increase in estimated_length variable value changes the actual_length variable value by an amount equal to 1.223.
+
+summary(l_model)
+
+autoplot(l_model)
+
+## from the diasnostic plots the results look ok so the following p-value should be reliable. 
+## H0: coefficent = 0
+## Ha:coefficient != 0
+## according to the summary output the p-value of the regression coefficients are significantly different (p <  0.05) from 0. 
+
+
+  
+```
+
