@@ -1,0 +1,190 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Manual Model Development
+
+#1 
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(car)
+library(modelr)
+library(GGally)
+library(ggfortify)
+library(mosaic)
+
+housing_prices_kc <- read_csv("data/kc_house_data.csv")
+
+housing_prices_kc_trim<- housing_prices_kc %>% 
+  select(-c(date, id, sqft_living15, sqft_lot15, zipcode)) %>% 
+  mutate(waterfront = as.logical(waterfront),
+         renovated = ifelse(yr_renovated == 0, FALSE, TRUE),
+         view = case_when(view == 0 ~ "very bad",
+                          view == 1 ~ "bad",
+                          view == 2 ~ "good",
+                          view == 3 ~ "very good",
+                          view == 4 ~ "excellent",
+                          .default = as.character(view)),
+         condition = case_when(condition = view == 1 ~ "very bad",
+                          condition == 2 ~ "bad",
+                          condition == 3 ~ "good",
+                          condition == 4 ~ "very good",
+                          condition == 5 ~ "excellent",
+                          .default = as.character(condition)),
+         grade = case_when(grade < 4 ~ "unacceptable quality",
+                           grade >= 4 & grade < 7 ~ "below average quality",
+                           grade == 7 ~ "average quality",
+                           grade > 7 & grade < 11 ~ "above average quality",
+                           grade >= 11 ~ "high quality",
+                           .default = as.character(condition)))
+  )
+  # view, condition ad grade are categorical ordinal data types so i converted   them to character variables
+```
+# question 2
+
+```{r}
+
+housing_prices_kc_trim %>% 
+  select(sqft_basement, sqft_above, sqft_living)
+
+alias(lm(price ~., data = housing_prices_kc_trim))
+
+# from output sqft_basement can be calculated as sqft_living - sqft_above
+# so I dropped sqft_basement and sqft_above by decided to add a basement true false column
+
+housing_prices_kc_tidy <- housing_prices_kc_trim %>% 
+  mutate(basement = ifelse(sqft_basement == 0, FALSE, TRUE)) %>% 
+  select(-c(sqft_basement, sqft_above))
+
+
+
+```
+
+
+# Question 3
+
+```{r}
+
+houses_tidy_numeric <- housing_prices_kc_tidy %>%
+  select_if(is.numeric)
+
+houses_tidy_nonnumeric <- housing_prices_kc_tidy %>%
+  select_if(function(x) !is.numeric(x))
+
+houses_tidy_nonnumeric$price <- housing_prices_kc_tidy$price
+
+ggpairs(houses_tidy_numeric, progress = FALSE)
+```
+
+```{r}
+mod1a <- lm(price ~ sqft_living, data = housing_prices_kc_tidy)
+
+autoplot(mod1a)
+# graph 1 : acceptable
+# graph 2: acceptable but not normal at tails
+# graph 3 no funnelling
+
+summary(mod1a)
+
+# r2 = 0.4929 
+# intercept = -43580.743
+
+# 49% of the variaance can be explained based on sqft_living, this is statistically signifcant. The RSE is 261500 so predicting av error is around that amount. So the predication may be out by around $261500... not great.
+```
+
+```{r}
+
+mod2a <- lm(price ~ sqft_living + bathrooms, data = housing_prices_kc_tidy)
+
+autoplot(mod2a)
+# graph 1 : acceptable
+# graph 2: acceptable but not normal at tails
+# graph 3 no funnelling
+
+summary(mod2a)
+
+# r2 = 0.4929 
+# intercept = -43580.743
+
+# 49% of the variaance can be explained based on sqft_living + bathroom number, however, this is not statistically signifcant. The RSE is 261400  so predicting av error is around that amount. So the predication may be out by around $261400, again not great.
+
+
+
+
+```
+
+
+```{r}
+mod3a <- lm(price ~ sqft_living + waterfront, data = housing_prices_kc_tidy)
+
+housing_prices_kc_tidy_resid_3a <- housing_prices_kc_tidy %>% 
+  add_residuals(mod3a) %>% 
+  select(-c(price, sqft_living))
+
+housing_prices_kc_tidy_resid_3a %>% 
+  ggpairs(progress = FALSE)
+
+autoplot(mod3a)
+
+# graph 1: acceptable
+# graph 2: acceptable but not normal at tails
+# graph 3: no funnelling
+
+summary(mod3a)
+
+# 53% of the variance can be explained based on sqft_living + waterfrontTRUE, this is statistically signifcant. The RSE is 251500   so predicting av error is around that amount. So the predication may be out by around $251500 , again not great.
+
+
+
+
+```
+```{r}
+mod4a <- lm(price ~ sqft_living + waterfront + basement, data = housing_prices_kc_tidy)
+
+housing_prices_kc_tidy_resid_4a <- housing_prices_kc_tidy %>% 
+  add_residuals(mod4a) %>% 
+  select(-c(price, sqft_living, waterfront))
+
+autoplot(mod4a)
+
+# graph 1: acceptable
+# graph 2: acceptable but not normal at tails
+# graph 3: no funnelling
+
+summary(mod4a)
+
+# 53% of the variance can be explained based on sqft_living + waterfrontTRUE + basementTRUE, this is statistically significant. The RSE is 251200 so predicting av error is around that amount. So the predication may be out by around $251200, again not great.
+
+
+```
+```{r}
+mod5a <- lm(price ~ sqft_living + waterfront + basement + renovated, data = housing_prices_kc_tidy)
+
+housing_prices_kc_tidy_resid_5a <- housing_prices_kc_tidy %>% 
+  add_residuals(mod5a) %>% 
+  select(-c(price, sqft_living, waterfront, basement))
+
+autoplot(mod5a)
+
+# graph 1: acceptable
+# graph 2: acceptable but not normal at tails
+# graph 3: no funnelling
+
+summary(mod5a)
+
+# 53% of the variance can be explained based on sqft_living + waterfrontTRUE + basementTRUE + renovatedTRUE, this is statistically significant. The RSE is 249900  so predicting av error is around that amount. So the predication may be out by around $249900 , again not great.
+```
+
+
+
+
+```{r}
+ggpairs(houses_tidy_nonnumeric, progress = FALSE)
+
+
+```
+
+
