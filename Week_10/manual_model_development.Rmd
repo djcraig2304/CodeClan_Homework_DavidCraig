@@ -122,10 +122,12 @@ mod3a <- lm(price ~ sqft_living + waterfront, data = housing_prices_kc_tidy)
 
 housing_prices_kc_tidy_resid_3a <- housing_prices_kc_tidy %>% 
   add_residuals(mod3a) %>% 
-  select(-c(price, sqft_living))
+  select(-c(price, -sqft_living))
 
 housing_prices_kc_tidy_resid_3a %>% 
-  ggpairs(progress = FALSE)
+  select(resid, waterfront) %>% 
+  ggpairs(progress =FALSE)
+
 
 autoplot(mod3a)
 
@@ -141,12 +143,17 @@ summary(mod3a)
 
 
 ```
+
 ```{r}
 mod4a <- lm(price ~ sqft_living + waterfront + basement, data = housing_prices_kc_tidy)
 
 housing_prices_kc_tidy_resid_4a <- housing_prices_kc_tidy %>% 
   add_residuals(mod4a) %>% 
   select(-c(price, sqft_living, waterfront))
+
+housing_prices_kc_tidy_resid_4a %>% 
+  select(resid, basement) %>% 
+  ggpairs(progress =FALSE)
 
 autoplot(mod4a)
 
@@ -166,6 +173,10 @@ mod5a <- lm(price ~ sqft_living + waterfront + basement + renovated, data = hous
 housing_prices_kc_tidy_resid_5a <- housing_prices_kc_tidy %>% 
   add_residuals(mod5a) %>% 
   select(-c(price, sqft_living, waterfront, basement))
+
+housing_prices_kc_tidy_resid_5a %>% 
+  select(resid, renovated) %>% 
+  ggpairs(progress =FALSE)
 
 autoplot(mod5a)
 
