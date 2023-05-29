@@ -1,0 +1,364 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(GGally)
+library(ggfortify)
+library(modelr)
+```
+```{r}
+wine_quality_red <- read_csv("Weekend Homework/wine_quality_red.csv")
+wine_quality_white <- read_csv("Weekend Homework/wine_quality_white.csv")
+
+wine_quality_red 
+wine_quality_white
+```
+
+Traits which make a good wine:
+acidity - high acidity, sharper the taste of the wine, feel lighter bodied
+tannin - phenolic compounds in wine, bitter taste, higher in red wines
+alcohol - higher alcohol bolder taste, low alcohol wines - feel lighter
+sweetness - refers to levels of residual sugar (sweet wines have higher residual sugar)
+- all traits must be balanced.
+
+variables:
+outcome = quality
+
+input =
+
+1 - fixed acidity: most acids involved with wine are fixed or nonvolatile (do not evaporate readily)
+
+2 - volatile acidity: the amount of acetic acid in wine, hight levels can cause vinegar taste
+
+3 - citric acid: small amount in wines, can add ‘freshness’ and flavour
+
+4 - residual sugar: the amount of sugar residual after fermentation, wines with less than 1 gram/liter and  greater than 45 grams/liter are sweet
+
+5 - chlorides: "salts" in the wine
+
+6 - free sulfur dioxide: the free form of SO2 exists in equilibrium between molecular SO2 (as a dissolved gas) and bisulfite ion; it prevents microbial growth and the oxidation of wine
+
+7 - total sulfur dioxide: total free and bound forms of S02; in low concentrations undetectable but free SO2 concentrations over 50 ppm, can affect smell and taste
+
+8 - density: the density of wine is close to that of water depending on the percent alcohol and sugar content
+
+9 - pH: describes how acidic or basic a wine is, most wines are between 3-4 on the pH scale
+
+10 - sulphates: a wine additive which can contribute to sulfur dioxide gas (S02) levels, wich acts as an antimicrobial and antioxidant
+
+11 - alcohol: the percent alcohol content of the wine
+
+4 groups of variables:
+
+
+```{r}
+
+wine_quality_red_type <- wine_quality_red %>% 
+  mutate(wine_id = str_c("r", wine_id, sep = "_"),
+         colour = "red", 
+         .after = wine_id
+         )
+
+wine_quality_white_type <- wine_quality_white %>% 
+  mutate(wine_id = str_c("w", wine_id, sep = "_"),
+         colour = "white", 
+         .after = wine_id
+         )
+
+```
+
+```{r}
+wine_quality_combined <- rbind(wine_quality_red_type, wine_quality_white_type) %>% 
+  select(-wine_id)
+```
+
+```{r}
+wine_quality_combined
+
+head(wine_quality_combined)
+
+summary(wine_quality_combined) # no NA's in the data...
+```
+```{r}
+# data for both red and white wines follows a relatively normal distribution
+wine_quality_combined %>% 
+  ggplot() +
+  aes(x = quality) +
+  geom_histogram(colour = "white", bins = 30) +
+  facet_wrap(~ colour) +
+  scale_x_continuous(limits = c(0, 10))
+
+
+```
+split into numerical and categorical variables:
+
+outcome: quality, 
+categorical: colour, region
+
+numerical: fixed_acidity, volatile_acidity, citric_acid, p_h,
+
+residual_sugar, chlorides,
+free_sulfur_dioxide, total_sulfur_dioxide, density,  sulphates, alcohol
+
+
+```{r}
+#converted categoricals to factors
+wine_quality_combined <- wine_quality_combined %>% 
+  mutate(colour = as.factor(colour),
+         region = as.factor(region))
+
+
+
+
+
+ggpairs(wine_quality_combined, progress =  FALSE)
+```
+
+```{r}
+# numerical variables(acidity) correlations with quality
+wine_quality_combined %>% 
+  select(quality, fixed_acidity, volatile_acidity, citric_acid, p_h,) %>% 
+  ggpairs(progress = FALSE)
+
+# none of the variables relating to acidity of the wine have a particularly high crrelation with the wine quality. fixed and volatile acidity seem to cause a reduction in the quality of the wine(weak and relatively weak), citric acid level has a very weak positive correlation, pH also has a very weak/no correlation with the quality of the wine. 
+```
+```{r}
+# other numerical variables(not-acidity) correlations with quality
+
+wine_quality_combined %>% 
+  select(-c(fixed_acidity, volatile_acidity, citric_acid, p_h, colour, region)) %>% 
+  ggpairs(progress = FALSE)
+
+# similar to other numerical variables none of the variables here have a particuaraly high correlation
+# with the wine quality. 
+# the highest correlations (low/moderate) are density, chlorides, and alcohol level
+# other variables  sulphates, sulphur dioxide levels and, residual sugar, sulphates
+
+```
+
+```{r}
+# categorical variables
+
+wine_quality_combined %>% 
+  select(quality, colour, region) %>% 
+  ggpairs(progress = FALSE)
+
+# from ggpairs plots neither categorical variable, colour or region, appears to have a strong correlation
+# witht the quality score of the wine. 
+
+```
+
+From ggpairs plots the top candidate variables to explore were (in order):
+
+volatile_acidity
+density
+alcohol
+chlorides
+
+```{r}
+alias(quality ~ ., data = wine_quality_combined)
+```
+# first predictor
+
+```{r}
+model1a <- lm(quality ~ volatile_acidity, data = wine_quality_combined)
+model1b <- lm(quality ~ density, data = wine_quality_combined)
+model1c <- lm(quality ~ alcohol, data = wine_quality_combined)
+model1d <- lm(quality ~ chlorides, data = wine_quality_combined)
+
+# model 1a - quality ~ volatile acidity
+autoplot(model1a)
+# residuals look ok
+# relatively normally distributed
+# not too much heteroscedacisity
+summary(model1a)
+# r2 value is relatively low, 0.06349, but the effect of volatile_acidity is significant.
+```
+
+```{r}
+# model 1a - quality ~ volatile acidity
+autoplot(model1b)
+# residuals are not distributed well as outlier appears to alter residuals away from 0 
+# data does appear to be normally distributed
+# large amount of heteroscedasticity observed...
+# based upon this would probably discount density as a variable for our linear model.
+
+summary(model1b)
+# r2 value, low although density has a signifcant effect on quality... 
+```
+```{r}
+quality ~ alcohol
+autoplot(model1c)
+# residuals well distiributed.
+# data does appear to be normally distributed
+# no heteroscedasicity observed
+
+summary(model1c)
+# r2 value low, 0.1832, (higher than volatility) and effect is significant
+
+```
+```{r}
+# model1d quality ~ chlorides
+
+autoplot(model1d)
+# residuals are not distributed well as outlier appears to alter residuals away from 0 
+# data does appear to be normally distributed
+# large amount of heteroscedasticity observed...
+# based upon this would probably discount chlorides as a variable for our linear model.
+
+summary(model1d)
+# r2 low, effect signifcant but does not meet criteria for linear model 
+```
+best model so far is quality ~ alcohol
+model1c <- lm(quality ~ alcohol, data = wine_quality_combined)
+
+
+
+
+# second predictor
+
+```{r}
+wine_resid <- wine_quality_combined %>% 
+  add_residuals(model1c, var = "resid") %>% 
+  select(resid, volatile_acidity, density, chlorides)
+
+
+wine_resid %>% 
+  ggpairs(progress = FALSE)
+
+#both volatile_acidity and density have the highest correlation with the residuals
+```
+
+```{r}
+model2a <- lm(quality ~ alcohol + volatile_acidity, data = wine_quality_combined)
+
+model2b <- lm(quality ~ alcohol + density, data = wine_quality_combined)
+
+model2c <- lm(quality ~ alcohol + chlorides, data = wine_quality_combined)
+
+```
+
+```{r}
+# model2a = quality ~ alcohol + volatile_acidity 
+
+ autoplot(model2a)
+
+# residual distribution looks good, 
+# data relatively normally distributed
+# low heteroscedasticity
+
+summary(model2a)
+
+# adj r2 low, 0.2387,  effect significant 
+
+
+```
+```{r}
+# model2b <- quality ~ alcohol + density
+
+autoplot(model2b)
+# residual distribution looks good, 
+# data relatively normally distributed
+# low heteroscedasticity
+
+summary(model2b)
+# adj r2 = 0.183 but effect not significant, would not use density in the model
+```
+```{r}
+# modoel2c = quality ~ alcohol +chlorides 
+
+autoplot(model2c)
+# residual distribution looks ok, bit skewed
+# data relatively normally distributed
+# low heteroscedasticity
+
+summary(model2c)
+# adj r2 = 0.1904
+# chlorides does signifcantly alter the quality. 
+```
+
+model2a with quality ~ alcohol + volatile acidity has the highest adjusted r2
+
+```{r}
+anova(model1c, model2a)
+# low p value tells us the model is signficant so we should include the volatile acidity
+# variable
+```
+
+
+# third predictor
+
+```{r}
+wine_resid2 <- wine_quality_combined %>% 
+  add_residuals(model2a, var = "resid") %>% 
+  select(resid, density, chlorides)
+
+wine_resid2 %>% 
+  ggpairs(progress = FALSE)
+```
+
+
+```{r}
+model3a <- lm(quality ~ alcohol + volatile_acidity + chlorides, data = wine_quality_combined)
+model3b <- lm(quality ~ alcohol + volatile_acidity + density, data = wine_quality_combined)
+```
+
+```{r}
+# model3a <- lm(quality ~ alcohol + volatile_acidity + chlorides, data = wine_quality_combined)
+
+autoplot(model3a)
+# residuals look consisten,
+# data normally distributed
+# low heteroscedasticity
+
+summary(model3a)
+# adj r2 is 0.2386 but effect not signifcant
+
+```
+```{r}
+# model3b <- lm(quality ~ alcohol + volatile_acidity + density, data = wine_quality_combined)
+
+autoplot(model3b)
+# residuals look consistent,
+# data normally distributed
+# low heteroscedasticity
+
+summary(model3b)
+# adj r2 is 0.2457 , effect of density is signifcant
+
+```
+```{r}
+anova(model2a, model3b)
+```
+
+# remaining predictors 
+
+```{r}
+wine_resid_3 <- wine_quality_combined %>% 
+  add_residuals(model3b, var = "resid") %>% 
+  select(-c(quality, alcohol, volatile_acidity, density))
+
+wine_resid_3 %>% 
+  ggpairs(progress = FALSE)
+
+# none of the predictors that were excluded in the beginning correlate well with the 
+# residuals of the final model.
+  
+```
+
+## Model Interpretation
+
+The quality rating of wine is affected by the alcohol concentration, volatile_acidity + density.
+
+for a wine with density alcohol % of 4, volatile_acidity of 0.7 and density of 0.98,
+
+quality = -35.51606 + 0.38 * alcohol + -1.49647 * volatile_acidity + 37.98219 * density
+quality = -35.51606 + 4 * 0.38 + -1.49647 * 0.7 + 37.98219 * 0.98
+quality = 2.178957
+
+
+
+

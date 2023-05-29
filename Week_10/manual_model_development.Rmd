@@ -40,7 +40,7 @@ housing_prices_kc_trim<- housing_prices_kc %>%
                            grade > 7 & grade < 11 ~ "above average quality",
                            grade >= 11 ~ "high quality",
                            .default = as.character(condition)))
-  )
+
   # view, condition ad grade are categorical ordinal data types so i converted   them to character variables
 ```
 # question 2
@@ -58,6 +58,8 @@ alias(lm(price ~., data = housing_prices_kc_trim))
 housing_prices_kc_tidy <- housing_prices_kc_trim %>% 
   mutate(basement = ifelse(sqft_basement == 0, FALSE, TRUE)) %>% 
   select(-c(sqft_basement, sqft_above))
+
+alias(lm(price ~., data = housing_prices_kc_tidy))
 
 
 

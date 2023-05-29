@@ -1,0 +1,42 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Weekend Homework quiz
+
+### 1
+I want to predict how well 6 year-olds are going to do in their final school exams. Using the following variables am I likely under-fitting, fitting well or over-fitting? Postcode, gender, reading level, score in maths test, date of birth, family income.
+Answer: over-fitting, as some variables such as age postcode or family income are probably not directly related to the test score but may be indirectly related. 
+
+### 2
+If I have two models, one with an AIC score of 34,902 and the other with an AIC score of 33,559 which model should I use?
+Answer: use the one with the lower AIC.
+
+### 3
+I have two models, the first with: r-squared: 0.44, adjusted r-squared: 0.43. The second with: r-squared: 0.47, adjusted r-squared: 0.41. Which one should I use?
+Answer: use the first one with a higher adjusted rsq.
+
+### 4
+I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
+Answer: No, similar RMSE suggest the model is consitent on both data sets.
+
+### 5
+How does k-fold validation work? 
+Answer: splits data into multiple parts ie 5 or 10. Makes a model multiple times ie 5.
+We then train train each of thr data sets on the oter four and once finished you can take the average error across all the test folds, giving a n indication of model performance.
+
+### 6
+What is a validation set? When do you need one?
+the validation setis a set of data used neither in training nor to compare models against each other. It should give a final estimate of the expected performance of the model. It should be used only after you are finished selecting the model.
+
+### 7
+
+Describe how backwards selection works.
+Backwards selection works by systematically removing less significant variables from a model. ie simplifying the model by eliminating variables that have little impact on the model's power.
+
+### 8
+Describe how best subset selection works.
+best subset selection works by evaluating all possible combinations of features and selecting the one that yields the best performance according to a chosen evaluation metric. 
+
+
