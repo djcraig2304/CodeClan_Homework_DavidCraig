@@ -27,6 +27,8 @@ sweetness - refers to levels of residual sugar (sweet wines have higher residual
 variables:
 outcome = quality
 
+vif - various inflation factor
+
 input =
 
 1 - fixed acidity: most acids involved with wine are fixed or nonvolatile (do not evaporate readily)
@@ -130,7 +132,9 @@ wine_quality_combined %>%
 
 wine_quality_combined %>% 
   select(-c(fixed_acidity, volatile_acidity, citric_acid, p_h, colour, region)) %>% 
-  ggpairs(progress = FALSE)
+  ggpairs(progress = FALSE) +
+  theme_grey(base_size = 1) +# this bit just changes the axis label font size so we can see
+  theme(strip.text = element_text(size = 5)) 
 
 # similar to other numerical variables none of the variables here have a particuaraly high correlation
 # with the wine quality. 
@@ -342,7 +346,9 @@ wine_resid_3 <- wine_quality_combined %>%
   select(-c(quality, alcohol, volatile_acidity, density))
 
 wine_resid_3 %>% 
-  ggpairs(progress = FALSE)
+  ggpairs(progress = FALSE) +
+  theme_grey(base_size = 1) +# this bit just changes the axis label font size so we can see
+  theme(strip.text = element_text(size = 5)) 
 
 # none of the predictors that were excluded in the beginning correlate well with the 
 # residuals of the final model.
@@ -358,6 +364,8 @@ for a wine with density alcohol % of 4, volatile_acidity of 0.7 and density of 0
 quality = -35.51606 + 0.38 * alcohol + -1.49647 * volatile_acidity + 37.98219 * density
 quality = -35.51606 + 4 * 0.38 + -1.49647 * 0.7 + 37.98219 * 0.98
 quality = 2.178957
+
+Note: from homework answers it is important to remove variables that are highly correlated with each other. In this instance it would have been important to drop density as this is highly correlated with alcohol content.
 
 
 

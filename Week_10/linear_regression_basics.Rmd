@@ -1,0 +1,24 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Linear Regression Model Steps
+
+1. Data Wrangling/ Cleaning 
+2. Exploratory data analysis 
+3. Define outcome variable and input variables for linear models
+4. 
+- Use ggpairs to look at correlations and associations between all variables, 
+not just output variables. If variables are highly correlated ie greater than 0.6
+then you can drop one of the variables and keep the other. 
+- Use alias() to look for related variables. 
+- write out highest correlated variables with outcome variables as best candidates. 
+
+5. Start to build candidate linear models and compare between each.
+after each model is completed make residual ggpairs plots, add_residuals() function, 
+to see if future additions of variabes correlate with residuals.
+
+6. continue to build models and check rsq values and signifcance to determine the effect
+of adding variables to the models. 
+
