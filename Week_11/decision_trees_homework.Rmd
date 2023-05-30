@@ -1,0 +1,189 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(rpart)
+library(rpart.plot)
+library(tidyverse)
+library(janitor)
+
+library(tidyverse)
+titanic_set <- read_csv('data/titanic_decision_tree_data.csv')
+
+shuffle_index <- sample(1:nrow(titanic_set))
+
+# shuffle the data so class order isn't in order - need this for training/testing split later on 
+titanic_set <- titanic_set[shuffle_index, ]
+```
+
+# MVP
+
+## Q1
+
+```{r}
+titanic_set
+```
+```{r}
+clean_titanic_set <- titanic_set %>% 
+ filter(!is.na(survived)) %>% 
+  mutate(survival = factor(survived, levels = c(0,1), labels = c("No", "Yes")), 
+         sex = as.factor(sex),
+         age_status = as.factor(ifelse(age <= 16, "child", "adult")),
+         class = factor(pclass, levels = c(3,2,1), labels = c("Low", "Med", "High")),
+         embarked = as.factor(embarked)
+         ) %>% 
+   na.omit() %>% 
+  select(sex, age_status, class, embarked, sib_sp, parch, survival) 
+ 
+  
+```
+
+
+
+# Question 2
+
+```{r}
+library(GGally)
+clean_titanic_set %>% 
+  ggpairs(progress = FALSE)
+# from ggpairs plot we can see that sex, age_status, class, embarkment all influence survivial
+```
+```{r}
+clean_titanic_set %>% 
+  ggplot() +
+  aes(x = survival, fill = sex) %>% 
+  geom_bar(position = "fill")
+
+clean_titanic_set %>% 
+  ggplot() +
+  aes(x = survival, fill = class) %>% 
+  geom_bar(position = "fill")
+
+clean_titanic_set %>% 
+  ggplot() +
+  aes(x = survival, fill = age_status) %>% 
+  geom_bar(position = "fill")
+
+```
+
+
+## Question 3
+
+```{r}
+
+
+n_data <- nrow(clean_titanic_set)
+
+test_index <- sample(1:n_data, size = n_data*0.2)
+
+titanic_test  <- slice(clean_titanic_set, test_index)
+
+titanic_train <- slice(clean_titanic_set, -test_index)
+
+titanic_test %>% 
+   tabyl(survival)
+
+titanic_train %>% 
+  tabyl(survival)
+
+# the data is not perfectly balanced but is close enough based on the notes.
+```
+## Question 4
+```{r}
+titanic_fit <- rpart(
+  formula = survival ~ ., 
+  data = titanic_train, 
+  method = 'class'
+)
+
+rpart.plot(titanic_fit, 
+           yesno = 2, 
+           fallen.leaves = TRUE, 
+           faclen = 6, 
+           digits = 4)
+
+rpart.plot(titanic_fit, 
+           yesno = 2, 
+           fallen.leaves = TRUE, 
+           faclen = 6, 
+           digits = 4, 
+           type = 4, 
+           extra = 101)
+
+```
+```{r}
+rpart.rules(titanic_fit, cover = TRUE)
+```
+
+
+## Question 5
+
+The decision tree tells us that based on our data:
+- the root node, tells us when all the data is examined together the most likely outcome is survival on the titanic.
+- the probability of surviving base on the root node is 0.6735.
+- the biggest predictor of survival is sex not being male and if you are female the probability of survival is 0.9557 with 48.33% of the data points pass through this node.
+- if you are male you have a 0.4079 chance of survival with 51.79% of the data passing through this leaf node, 
+- if you are male the next biggest predictor of your survival is if you have greater than 1 siblings or spouses on board the titanic. If you have no sibling or spouse you have a 0.3265 chance of survival being yes,
+- if you do not have a sibling or spouse aboard your chnace of survival is 0.5556 with 18.37% of the data passing through this leaf node.
+- the next predictor of survival would be where you embarked from. ifyou embarked at Queensland or South Hampton, you had a 0.5 chance of survival with 13.61% of the data being passed to this node. If you did not embark at Queensland or Sputh Hampton your chance of survival was 0.7143 percent with 4.76% of the data passing through this node.
+- the final determinant of survival in our decision tree is whether you travelling with a child or parents, or whether you had a nanny aboard. If you had nanny aboard your chance of survival was 0.667 with 6.12% of the data passing through this node. Whether you were travelling with parents or children your chance of survival was 0.3636 with 7.48% of the data passing through this leaf node. 
+
+Females have a highest overall chance or surviving.
+Males with no siblings or spouses aboard had the lowest chance of surviving
+
+## Question 6
+
+```{r}
+library(modelr)
+
+titanic_test_pred <- titanic_test %>%
+  add_predictions(titanic_fit, type = 'class')
+
+library(caret)
+
+confusionMatrix(titanic_test_pred$pred, titanic_test_pred$survival)
+```
+For this data set the confusion matrix  tells us:
+there were 7 TNs, 8FPs, 5FNs, 16 TPs.
+63.89% of the data was classified correctly
+CIs are (0.4622 to 0.7918)
+sensitivity indicates the model is good, not great, at identifying postives instances
+specificity is 0.6667, indicates the model is very good at identifying negative instances.
+
+## Question 7
+
+```{r}
+library(ranger)
+
+rf_classifier <- ranger(survival ~ ., 
+                        data = titanic_train, 
+                        importance = "impurity", 
+                        num.trees = 1000, 
+                        mtry = 2, 
+                        min.node.size = 5)
+
+rf_classifier
+
+importance(rf_classifier)
+
+
+```
+
+sex is the most important variable, followed by sib_sp, age_status, parch, and class. 
+
+```{r}
+titanic_test_pred <- titanic_test %>%
+  mutate(pred = predict(rf_classifier, data = titanic_test)$predictions)
+
+confusionMatrix(titanic_test_pred$pred, titanic_test_pred$survival)
+```
+
+
+
+
+
+
+
+
