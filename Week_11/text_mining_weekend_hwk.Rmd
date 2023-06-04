@@ -1,0 +1,122 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Text Mining Weekend Homework
+
+```{r}
+library(tidyverse)
+library(janeaustenr)
+library(tidytext)
+library(ggwordcloud)
+
+```
+### MVP
+
+## 1
+
+```{r}
+
+austen_books <- austen_books()
+
+
+## The most common words for Pride and Predjudice.
+austen_books %>% 
+  filter(book == "Pride & Prejudice") %>% 
+  unnest_tokens(word, text) %>% 
+  count(word, sort = TRUE)
+```
+
+```{r}
+
+## The most common words for Sense and Sensibility.
+austen_books %>% 
+  filter(book == "Pride & Prejudice") %>% 
+  unnest_tokens(word, text) %>% 
+  count(word, sort = TRUE)
+
+```
+## 2
+
+```{r}
+## Most common words minus stop words for pride and prejudice
+austen_books %>% 
+  filter(book == "Pride & Prejudice") %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE)
+  
+
+
+```
+
+```{r}
+
+## Most common words minus stop words for Sense and Sensibility
+
+austen_books %>% 
+  filter(book == "Sense & Sensibility") %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>% 
+  count(word, sort = TRUE)
+
+```
+
+## 3
+
+```{r}
+## Most common sentiment words for pride and prejudice 
+get_sentiments("bing")
+
+austen_books %>% 
+  filter(book == "Pride & Prejudice") %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>%
+  left_join(get_sentiments("bing")) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  filter(!is.na(sentiment))
+
+
+
+```
+
+```{r}
+
+## Most common sentiment words for sense and sensibility 
+
+austen_books %>% 
+  filter(book == "Sense & Sensibility") %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>%
+  left_join(get_sentiments("bing")) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  filter(!is.na(sentiment))
+
+```
+
+# Extension
+
+```{r}
+
+austen_books_diff <- austen_books %>% 
+  filter(book == "Sense & Sensibility" | book == "Pride & Prejudice") %>% 
+  unnest_tokens(word, text) %>% 
+  anti_join(stop_words) %>% 
+  count(word, book, sort = TRUE) %>% 
+  head(100)
+  
+  
+  
+  anti_join(stop_words) %>%
+  left_join(get_sentiments("bing")) %>% 
+  group_by(book) %>% 
+  count(word, sentiment, sort = TRUE) %>% 
+  filter(!is.na(sentiment))
+
+
+ggwordcloud(austen_books_diff$word, austen_books_diff$n) +
+  facet_wrap(~austen_books_diff$book)
+
+```
+

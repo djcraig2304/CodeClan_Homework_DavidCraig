@@ -1,0 +1,216 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+## Logistical Regression Weekend Hwk
+```{r}
+#libraries
+library(tidyverse)
+library(GGally)
+library(janitor)
+library(modelr)
+library(pROC)
+library(caret)
+```
+
+
+```{r}
+#data
+oj <- read_csv("data/orange_juice.csv") %>% 
+  clean_names()
+```
+
+```{r}
+#exploration
+glimpse(oj)
+```
+From the data and the question I have decided that "purchase" 
+is the output variable referring to which juice they have purchased 
+
+
+```{r}
+#converted specials to logical and made purchase_mm variable.
+oj <- oj %>% 
+  mutate(purchase_mm = ifelse(purchase == "MM", TRUE, FALSE), 
+                              .after = purchase,
+         special_ch = as.logical(special_ch),
+         special_mm = as.logical(special_mm)) 
+
+```
+
+```{r}
+oj %>% 
+  filter(store7 == "Yes") %>% 
+  count(store_id)
+```
+ 
+```{r}
+alias(purchase_mm ~., data = oj) 
+```
+ 
+ From  the alias, I kept: sale_price_mm, sale_price_ch, 
+ price_diff, list_price_dif, store_id, purchaseMM, weekof_purchase, special_ch
+ special_mm, loyal_ch, pct_disc_mm, pct_disc_ch
+ 
+```{r}
+oj_trim <- oj %>% 
+  select(sale_price_mm, sale_price_ch, 
+ price_diff, list_price_diff, store_id, purchase_mm, weekof_purchase, special_ch,
+ special_mm, loyal_ch, pct_disc_mm, pct_disc_ch, store7) %>% 
+  mutate(store_id = as.factor(store_id),
+         store7 = as.factor(store7),
+         purchase_mm = as.factor(purchase_mm))
+```
+ 
+
+```{r}
+##ggpairs for first variables
+oj_trim %>% 
+  select(sale_price_mm, sale_price_ch, 
+ price_diff, list_price_diff, store_id, purchase_mm, weekof_purchase, loyal_ch, pct_disc_mm, pct_disc_ch) %>% 
+  ggpairs(progress = FALSE)
+```
+ loyal_ch, pct_discmm, pct_discch & store_id seem to be the most promising for our model
+ 
+```{r}
+#ggpairs for second variables
+oj_trim %>%  
+select(special_ch,
+ special_mm, purchase_mm) %>%
+  ggpairs(progress = F)
+```
+Decided to keep both special_ch & special_mm
+ 
+```{r}
+oj_model_1 <- glm(
+  purchase_mm ~ special_ch + special_mm + loyal_ch + store_id + pct_disc_mm + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+```
+ 
+```{r}
+summary(oj_model_1)
+```
+ 
+```{r}
+oj_model_2 <- glm(
+  purchase_mm ~ loyal_ch + store_id + pct_disc_mm + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+summary(oj_model_2)
+```
+
+There was a correlation specifically between store 7 and 
+purchaseMM 
+ 
+```{r}
+oj_model_3 <- glm(
+  purchase_mm ~ loyal_ch + store7 + pct_disc_mm + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+summary(oj_model_3)
+```
+ 
+```{r}
+oj_model_4 <- glm(
+  purchase_mm ~ store7 + pct_disc_mm + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+oj_model_5 <- glm(
+  purchase_mm ~ loyal_ch + pct_disc_mm + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+oj_model_6 <- glm(
+  purchase_mm ~ loyal_ch + store7 + pct_disc_ch,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+oj_model_7 <- glm(
+  purchase_mm ~ loyal_ch + store7 + pct_disc_mm,
+  data = oj_trim,
+  family = binomial(link = "logit")
+)
+
+summary(oj_model_4)
+summary(oj_model_5)
+summary(oj_model_6)
+summary(oj_model_7)
+
+```
+model_3 has the lowest AIC and the best fit for making
+our predictions. 
+
+```{r}
+oj_model3_pred <- oj_trim %>% 
+  add_predictions(oj_model_3, type = "response")
+```
+
+```{r}
+threshold <- 0.6
+
+oj_model3_pred <- oj_model3_pred %>% 
+  mutate(pred_threshold_0.6 = pred >= threshold)
+
+conf_matrix <- oj_model3_pred %>% 
+  tabyl(purchase_mm)
+
+roc_obj_oj <- oj_model3_pred %>% 
+  roc(response = purchase_mm,
+      predictor = pred)
+
+roc_curve <- ggroc(
+  data = roc_obj_oj,
+  legacy.axes = TRUE
+) +
+  coord_fixed()
+
+roc_curve
+```
+ 
+```{r}
+auc(roc_obj_oj)
+```
+
+# checking with cross validation
+```{r}
+train_control <- trainControl(method = "repeatedcv",
+                              number = 5, 
+                              repeats = 100,
+                              savePredictions = TRUE,
+                              classProbs = TRUE,
+                              summaryFunction = twoClassSummary)
+```
+ 
+```{r}
+#converted logical variable to factor
+oj_trim_valid <- oj_trim %>% 
+  mutate(purchase_mm = as_factor(purchase_mm),
+         purchase_mm = ifelse(purchase_mm == TRUE, "t", "f")) %>% 
+  select(purchase_mm, store7, pct_disc_mm, pct_disc_ch, loyal_ch) 
+```
+
+
+ 
+```{r}
+cv_model <- train(purchase_mm ~ loyal_ch + store7 + pct_disc_mm + pct_disc_ch,
+               data = oj_trim_valid,
+               trControl = train_control,
+               method = "glm",
+               family = binomial(link = "logit"))
+```
+
+```{r}
+summary(cv_model)
+
+cv_model$results
+```
