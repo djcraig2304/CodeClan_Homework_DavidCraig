@@ -64,13 +64,29 @@ heart_disease_scotland_clean <- heart_disease_data_scotland %>%
 #admissions and discharges graph by healthboard
 heart_disease_scotland_clean %>% 
   filter(nhs_health_board == "Fife") %>% 
-  group_by(admission_type) %>% 
+  group_by(diagnosis) %>% 
   summarise(total_num_discharges = sum(number_of_discharges)) %>% 
   ggplot() +
-  aes(x = admission_type, y = total_num_discharges) +
+  aes(x = diagnosis, y = total_num_discharges) +
   geom_col()
   
 ```
+
+```{r}
+# total_deaths <- heart_disease_scotland_clean %>% 
+#   # select(year:number_of_deaths) %>% 
+#   group_by(year,nhs_health_board, age_group_years, diagnosis) %>% 
+#   summarise(number_of_deaths = sum(number_of_deaths)) %>% 
+#   mutate(sex = "Total")
+# 
+# total_deaths
+# 
+# join_cvd_total_deaths <- bind_rows(heart_disease_scotland_clean, total_deaths)
+
+
+```
+
+
 
 ```{r}
 #diagnosis and discharges graph by healthboard and sex (removed all diangoses)
@@ -116,10 +132,35 @@ heart_disease_scotland_clean %>%
         age_group_years %in% "0-44", 
         sex %in% "Male") %>%
   ggplot() +
-  aes(x = year, y = number_of_deaths) +
-  geom_col() +
-  scale_x_discrete()
-
+  aes(x = year, y = number_of_deaths, colour = diagnosis) +
+  geom_line(size = 1) +
+  geom_point(size = 5, shape = 17) 
 
 ```
+```{r}
+
+heart_disease_scotland_clean %>% 
+  filter(nhs_health_board %in% "All of Scotland",
+         sex %in% "All") %>%
+  group_by(year) %>% 
+  summarise(total_number_deaths = sum(number_of_deaths)) %>% 
+  ggplot() +
+  aes(x = year, y = total_number_deaths) +
+  geom_line(size = 1, colour = "red") +
+  geom_point(size = 5, colour = "red", shape = 17) +
+  ylim(20000, 30000) +
+  labs(x = "Year",
+       y = "Total Number of Deaths")
+  
+```
+
+
+```{r}
+heart_disease_scotland_clean %>% 
+  filter(nhs_health_board %in% "All of Scotland",
+         sex %in% "All") %>%
+  summarise(total_number_deaths = sum(number_of_deaths)) %>% 
+  pull()
+```
+
 
